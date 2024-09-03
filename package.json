@@ -1,0 +1,26 @@
+{
+  "name": "express__mern_backend",
+  "version": "1.0.0",
+  "description": "Backend for WTWR project",
+  "main": "app.js",
+  "scripts": {
+    "lint": "npx eslint .",
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "author": "Darien Sessions",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^6.6.1",
+    "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-import": "^2.29.1",
+    "nodemon": "^3.1.4",
+    "prettier": "^2.8.8"
+  }
+}
