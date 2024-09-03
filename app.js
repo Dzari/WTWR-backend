@@ -12,7 +12,16 @@ mongoose
   .catch(console.error);
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  req.user = {
+    _id: "66d75743ef77ce694dc03916",
+  };
+  next();
+});
+
 app.use("/", router);
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);

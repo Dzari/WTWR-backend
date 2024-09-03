@@ -12,14 +12,12 @@ const getUser = (req, res) => {
   const { userId } = req.params;
 
   User.findById(userId)
-    .then((user) => {
-      if (user !== null) res.status(200).send(user);
-      else throw Error(404);
-    })
+    .orFail()
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "CastError") {
         return res.status(400).send({ message: err.message });
-      } else if (err.name === "Error") {
+      } else if (err.name === "DocumentNotFoundError") {
         return res.status(404).send({ message: err.message });
       }
       return res.status(500).send({ message: err.message });
