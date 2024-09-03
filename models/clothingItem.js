@@ -29,11 +29,12 @@ const itemSchema = new mongoose.Schema({
     required: [true, "This field is required"],
   },
   likes: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+    default: [],
   },
   createdAt: {
-    type: (Date = Date.now),
+    type: Date,
+    default: Date.now,
   },
 });
 
