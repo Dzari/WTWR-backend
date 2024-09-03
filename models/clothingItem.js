@@ -1,23 +1,21 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
-const required = [true, "This field is required"];
-
 const itemSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: required,
+    required: [true, "This field is required"],
     minlength: 2,
     maxlength: 30,
   },
   weather: {
     type: String,
-    required: required,
-    enum: ['hot', 'warm', 'cold'],
+    required: [true, "This field is required"],
+    enum: ["hot", "warm", "cold"],
   },
   imageUrl: {
     type: String,
-    required: required,
+    required: [true, "This field is required"],
     validate: {
       validator(value) {
         return validator.isURL(value);
@@ -27,16 +25,16 @@ const itemSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
-    required: required,
+    ref: "user",
+    required: [true, "This field is required"],
   },
   likes: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
+    ref: "user",
   },
   createdAt: {
-    type: Date = Date.now
-  }
+    type: (Date = Date.now),
+  },
 });
 
 module.exports = mongoose.model("item", itemSchema);
