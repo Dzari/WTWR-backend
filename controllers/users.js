@@ -2,16 +2,41 @@ const User = require("../models/user");
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.send(users))
-    .catch((err) => console.error(err));
+    .then((users) => res.status(200).send(users))
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
 };
 
-const getUserbyId = (req, res) => {
-  console.log("placeholder");
+const getUser = (req, res) => {
+  const { userId } = req.params;
+
+  User.findById(userId)
+    .then((user) => {
+      if (user !== null) res.status(200).send(user);
+      else throw Error(404);
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: err.message });
+      } else if (err.name === "Error") {
+        return res.status(404).send({ message: err.message });
+      }
+      return res.status(500).send({ message: err.message });
+    });
 };
 
 const createUser = (req, res) => {
-  console.log("created user");
+  const { name, avatar } = req.body;
+
+  User.create({ name, avatar })
+    .then((user) => res.status(201).send(user))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(400).send({ message: err.message });
+      }
+      return res.status(500).send({ message: err.message });
+    });
 };
 
-module.exports = { getUsers, getUserbyId, createUser };
+module.exports = { getUsers, getUser, createUser };
