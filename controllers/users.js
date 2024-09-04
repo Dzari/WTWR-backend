@@ -4,7 +4,7 @@ const { BAD_REQUEST, NOT_FOUND, DEFAULT, SUCCESS } = require("../utils/errors");
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(SUCCESS).send(users))
-    .catch((err) => {
+    .catch(() => {
       res
         .status(DEFAULT)
         .send({ message: "An error has occurred on the server" });
