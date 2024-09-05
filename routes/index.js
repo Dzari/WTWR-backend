@@ -5,10 +5,8 @@ const { NOT_FOUND } = require("../utils/errors");
 
 router.use("/users", userRouter);
 router.use("/items", itemRouter);
-router.use(req, res, () => {
-  return res
-    .status(NOT_FOUND)
-    .send({ message: "Requested resource not found" });
+router.use((req, res, next) => {
+  next(res.send({ message: "Requested resourse not found" }));
 });
 
 module.exports = router;
