@@ -30,7 +30,6 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    unique: true,
     select: false,
     required: [true, "This field is required"],
   },

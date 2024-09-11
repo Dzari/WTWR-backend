@@ -6,13 +6,15 @@ const {
   BAD_REQUEST,
   NOT_FOUND,
   DEFAULT,
-  SUCCESS,
-  UNAUTHORIZED,
+  HTTPERROR,
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
-const errorHandling = (err) => {
-  if (err.name === "CastError") {
+const errorHandling = (err, res) => {
+  if (err.code === 11000) {
+    return res.status(HTTPERROR).send({ message: err.message });
+  }
+  if (err.name === "CastError" || "ValidationError") {
     return res.status(BAD_REQUEST).send({ message: err.message });
   }
   if (err.name === "DocumentNotFoundError") {
@@ -24,10 +26,11 @@ const errorHandling = (err) => {
 };
 
 const updateUser = (req, res) => {
-  const { _id, name, avatar } = req.body;
+  const userId = req.user._id;
+  const { name, avatar } = req.body;
 
   User.findByIdAndUpdate(
-    _id,
+    userId,
     { name, avatar },
     {
       new: true,
@@ -36,26 +39,16 @@ const updateUser = (req, res) => {
   )
     .orFail()
     .then((user) => {
-      res.status(SUCCESS).send(user);
+      res.send(user);
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
-      }
-      return res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch((err) => errorHandling(err, res));
 };
 
 const getCurrentUser = (req, res) => {
   User.findById({ _id: req.user._id })
     .orFail()
-    .then((user) => res.status(SUCCESS).send(user))
-    .catch(errorHandling(err));
+    .then((user) => res.send(user))
+    .catch((err) => errorHandling(err, res));
 };
 
 const createUser = (req, res) => {
@@ -64,8 +57,11 @@ const createUser = (req, res) => {
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({ name, avatar, email, password: hash }))
-    .then((user) => res.status(SUCCESS).send(user))
-    .catch(errorHandling(err));
+    .then((user) => {
+      user.password = undefined;
+      return res.send(user);
+    })
+    .catch((err) => errorHandling(err, res));
 };
 
 const login = (req, res) => {
@@ -76,10 +72,10 @@ const login = (req, res) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.status(SUCCESS).send(token);
+      res.send({ token });
     })
     .catch((err) => {
-      res.status(UNAUTHORIZED).send({ message: err.message });
+      res.status(BAD_REQUEST).send({ message: err.message });
     });
 };
 

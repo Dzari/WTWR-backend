@@ -1,5 +1,26 @@
 const Item = require("../models/clothingItem");
-const { BAD_REQUEST, NOT_FOUND, DEFAULT, SUCCESS } = require("../utils/errors");
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  DEFAULT,
+  SUCCESS,
+  FORBIDDEN,
+} = require("../utils/errors");
+
+const errorHandling = (err, res) => {
+  if (err.name === "ReferenceError") {
+    return res.status(FORBIDDEN).send({ message: err.message });
+  }
+  if (err.name === "CastError") {
+    return res.status(BAD_REQUEST).send({ message: err.message });
+  }
+  if (err.name === "DocumentNotFoundError") {
+    return res.status(NOT_FOUND).send({ message: err.message });
+  }
+  return res
+    .status(DEFAULT)
+    .send({ message: "An error has occurred on the server" });
+};
 
 const getItems = (req, res) => {
   Item.find({})
@@ -30,20 +51,17 @@ const createItem = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  Item.findByIdAndDelete(itemId)
+  Item.findById(itemId)
     .orFail()
-    .then((item) => res.status(SUCCESS).send(item))
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+    .then((item) => {
+      if (String(item.owner) !== req.user._id) {
+        return res.status(FORBIDDEN).send({ message: err.message });
       }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
-      }
-      return res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server" });
-    });
+      item
+        .deleteOne()
+        .then(() => res.send({ message: "Successfully deleted" }));
+    })
+    .catch((err) => errorHandling(err, res));
 };
 
 const likeItems = (req, res) => {
@@ -54,17 +72,7 @@ const likeItems = (req, res) => {
   )
     .orFail()
     .then((item) => res.status(SUCCESS).send(item))
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
-      }
-      return res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch((err) => errorHandling(err, res));
 };
 
 const deleteLikes = (req, res) => {
@@ -75,17 +83,7 @@ const deleteLikes = (req, res) => {
   )
     .orFail()
     .then((item) => res.status(SUCCESS).send(item))
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: err.message });
-      }
-      return res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch((err) => errorHandling(err, res));
 };
 
 module.exports = { getItems, createItem, deleteItem, likeItems, deleteLikes };
