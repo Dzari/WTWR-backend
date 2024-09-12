@@ -5,11 +5,12 @@ const {
   DEFAULT,
   SUCCESS,
   FORBIDDEN,
+  forbiddenMessage,
 } = require("../utils/errors");
 
 const errorHandling = (err, res) => {
   if (err.name === "ReferenceError") {
-    return res.status(FORBIDDEN).send({ message: err.message });
+    return res.status(FORBIDDEN).send({ message: forbiddenMessage });
   }
   if (err.name === "CastError") {
     return res.status(BAD_REQUEST).send({ message: err.message });
@@ -55,7 +56,8 @@ const deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
-        return res.status(FORBIDDEN).send({ message: err.message });
+        res.status(FORBIDDEN).send({ message: forbiddenMessage });
+        return;
       }
       item
         .deleteOne()
