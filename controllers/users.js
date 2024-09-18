@@ -53,19 +53,22 @@ const getCurrentUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, avatar, email, password } = req.body;
+  const { name, avatarUrl, email, password } = req.body;
 
   bcrypt
     .hash(password, 10)
-    .then((hash) => User.create({ name, avatar, email, password: hash }))
+    .then((hash) => User.create({ name, avatarUrl, email, password: hash }))
     .then((user) => {
       res.send({
         name: user.name,
-        avatar: user.avatar,
+        avatar: user.avatarUrl,
         email: user.email,
       });
     })
-    .catch((err) => errorHandling(err, res));
+    .catch((err) => {
+      console.log(err);
+      errorHandling(err, res);
+    });
 };
 
 const login = (req, res) => {
