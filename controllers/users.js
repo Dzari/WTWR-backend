@@ -28,11 +28,11 @@ const errorHandling = (err, res) => {
 
 const updateUser = (req, res) => {
   const userId = req.user._id;
-  const { name, avatar } = req.body;
+  const { name, avatarUrl } = req.body;
 
   User.findByIdAndUpdate(
     userId,
-    { name, avatar },
+    { name, avatarUrl },
     {
       new: true,
       runValidators: true,
