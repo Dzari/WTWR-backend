@@ -1,39 +1,13 @@
 const Item = require("../models/clothingItem");
-const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  DEFAULT,
-  SUCCESS,
-  FORBIDDEN,
-  forbiddenMessage,
-} = require("../utils/errors");
+const { BadRequestError, ForbiddenError, SUCCESS } = require("../utils/errors");
 
-const errorHandling = (err, res) => {
-  if (err.name === "ReferenceError") {
-    return res.status(FORBIDDEN).send({ message: forbiddenMessage });
-  }
-  if (err.name === "CastError") {
-    return res.status(BAD_REQUEST).send({ message: err.message });
-  }
-  if (err.name === "DocumentNotFoundError") {
-    return res.status(NOT_FOUND).send({ message: err.message });
-  }
-  return res
-    .status(DEFAULT)
-    .send({ message: "An error has occurred on the server" });
-};
-
-const getItems = (req, res) => {
+const getItems = (req, res, next) => {
   Item.find({})
     .then((items) => res.status(SUCCESS).send(items))
-    .catch(() => {
-      res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const { _id } = req.user;
 
@@ -41,32 +15,29 @@ const createItem = (req, res) => {
     .then((item) => res.status(SUCCESS).send(item))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        next(new BadRequestError(err.message));
       }
-      return res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server" });
+      next();
     });
 };
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
 
   Item.findById(itemId)
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
-        res.status(FORBIDDEN).send({ message: forbiddenMessage });
-        return;
+        next(new ForbiddenError(err.message));
       }
       item
         .deleteOne()
         .then(() => res.send({ message: "Successfully deleted" }));
     })
-    .catch((err) => errorHandling(err, res));
+    .catch(next);
 };
 
-const likeItems = (req, res) => {
+const likeItems = (req, res, next) => {
   Item.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -74,10 +45,10 @@ const likeItems = (req, res) => {
   )
     .orFail()
     .then((item) => res.status(SUCCESS).send(item))
-    .catch((err) => errorHandling(err, res));
+    .catch(next);
 };
 
-const deleteLikes = (req, res) => {
+const deleteLikes = (req, res, next) => {
   Item.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
@@ -85,7 +56,7 @@ const deleteLikes = (req, res) => {
   )
     .orFail()
     .then((item) => res.status(SUCCESS).send(item))
-    .catch((err) => errorHandling(err, res));
+    .catch(next);
 };
 
 module.exports = { getItems, createItem, deleteItem, likeItems, deleteLikes };
