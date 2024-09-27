@@ -8,88 +8,77 @@ const validateURL = (value, helpers) => {
   return helpers.error("string.uri");
 };
 
-const validateEmail = (value, helpers) => {
-  if (!validator.isEmail(value)) {
-    return helpers.message('The "email" field must be a valid email');
-  }
-  return value;
-};
-
-const validateisHexadecimal = (value, helpers) => {
-  if (!validator.isHexadecimal(value) || value.length !== 24) {
-    return helpers.message(
-      'The "id" must be a valid 24-character hexadecimal string'
-    );
-  }
-  return value;
-};
-
-//Validation for Add clothing item body
-const validateClothingItemBody = celebrate({
+module.exports.validateCardBody = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
       "string.max": 'The maximum length of the "name" field is 30',
       "string.empty": 'The "name" field must be filled in',
     }),
+
     imageUrl: Joi.string().required().custom(validateURL).messages({
       "string.empty": 'The "imageUrl" field must be filled in',
-      "string.uri": 'The "imageUrl" field must be a valid url',
+      "string.uri": 'the "imageUrl" field must be a valid url',
     }),
-    weather: Joi.string().required().messages({
-      "string.empty": 'The "weather" field must be filled in',
+    weather: Joi.string().valid("hot", "warm", "cold").required().messages({
+      "any.only": 'The "weather" field must be "hot", "warm" or "cold"',
+      "any.required": 'Please select a the  valid "weather" field selecion',
     }),
   }),
 });
 
-//Validator for User creation body
-const validateUserInfoBody = celebrate({
+module.exports.validateUserUpdate = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30).message({
+    name: Joi.string().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
-      "string.max": 'The maximum length of the "name" field is 30',
+      "string.max": 'The maximum length of the "name field is 30',
       "string.empty": 'The "name" field must be filled in',
     }),
-    email: Joi.string()
-      .required()
-      .custom(validateEmail)
-      .messages({ "string.empty": 'The "email" field must be filled in' }),
-  }),
-  password: Joi.string().required().min(8).messages({
-    "string.min": 'The minimum length of the "name" field is 8',
-    "string.empty": 'The "name" field must be filled in',
-  }),
-  avatarUrl: Joi.string().required.custom(validateURL).messages({
-    "string.empty": 'The "name" field must be filled in',
-    "string.uri": 'The "avatar URL" field must be a valid url',
+    avatar: Joi.string().custom(validateURL).messages({
+      "string.empty": 'The "avatar" field must be filled in',
+      "string.uri": 'the "avatar" field must be a valid url',
+    }),
   }),
 });
 
-//Validation for user Login body
-const validateLoginBody = celebrate({
+module.exports.validateUserLogin = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().custom(validateEmail).messages({
+    email: Joi.string().required().messages({
       "string.empty": 'The "email" field must be filled in',
+      "string.email": "The 'email' field must be a valid email",
     }),
-    password: Joi.string().required().min(8).messages({
-      "string.min": 'The minimum length of the "password" field is 8',
+    password: Joi.string().required().messages({
       "string.empty": 'The "password" field must be filled in',
     }),
   }),
 });
 
-//Validation for user ID from URL parameters (24-character hexadecimal)
-const validateId = celebrate({
-  params: Joi.object().keys({
-    id: Joi.string().required().custom(validateisHexadecimal).messages({
-      "string.empty": 'The "id" field must be filled in',
+module.exports.validateUserBody = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30).messages({
+      "string.min": 'The minimum length of the "name" field is 2',
+      "string.max": 'The maximum length of the "name field is 30',
+      "string.empty": 'The "name" field must be filled in',
+    }),
+
+    avatar: Joi.string().custom(validateURL).messages({
+      "string.empty": 'The "avatar" field must be filled in',
+      "string.uri": 'the "avatar" field must be a valid url',
+    }),
+
+    email: Joi.string().required().messages({
+      "string.empty": 'The "email" field must be filled in',
+      "string.email": "The 'email' field must be a valid email",
+    }),
+
+    password: Joi.string().required().messages({
+      "string.empty": 'The "password" field must be filled in',
     }),
   }),
 });
 
-module.exports = {
-  validateClothingItemBody,
-  validateUserInfoBody,
-  validateLoginBody,
-  validateId,
-};
+module.exports.validateId = celebrate({
+  params: Joi.object().keys({
+    itemId: Joi.string().required().hex().length(24),
+  }),
+});
