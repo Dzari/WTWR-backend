@@ -19,7 +19,7 @@ const createItem = (req, res, next) => {
       if (err.name === "ValidationError") {
         next(new BadRequestError(err.message));
       }
-      next();
+      next(err);
     });
 };
 
@@ -30,7 +30,7 @@ const deleteItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
-        return next(new ForbiddenError(err.message));
+        next(new ForbiddenError("You cannot delete another user's items"));
       }
       item
         .deleteOne()
@@ -40,7 +40,7 @@ const deleteItem = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError(err.message));
       }
-      next();
+      next(err);
     });
 };
 
@@ -56,7 +56,7 @@ const likeItems = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError(err.message));
       }
-      next();
+      next(err);
     });
 };
 
@@ -72,7 +72,7 @@ const deleteLikes = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         next(new NotFoundError(err.message));
       }
-      next();
+      next(err);
     });
 };
 

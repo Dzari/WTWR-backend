@@ -31,7 +31,7 @@ const updateUser = (req, res, next) => {
       if (err.name === "ValidationError")
         next(new BadRequestError(err.message));
 
-      next();
+      next(err);
     });
 };
 
@@ -43,7 +43,7 @@ const getCurrentUser = (req, res, next) => {
       if (err.name === "DocumentNotFoundError")
         next(new NotFoundError(err.message));
 
-      next();
+      next(err);
     });
 };
 
@@ -67,7 +67,7 @@ const createUser = (req, res, next) => {
       if (err.name === "ValidationError")
         next(new BadRequestError(err.message));
 
-      next();
+      next(err);
     });
 };
 
@@ -75,11 +75,12 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    next(new BadRequestError(err.message));
+    next(new BadRequestError("Incorrect password or email"));
   }
 
   User.findUserByCredentials(email, password)
     .then((user) => {
+      user.password = "";
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
@@ -89,7 +90,7 @@ const login = (req, res, next) => {
       if (err.message === "Incorrect email or password")
         next(new UnauthorizedError(err.message));
 
-      next();
+      next(err);
     });
 };
 
