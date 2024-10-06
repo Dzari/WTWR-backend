@@ -1,6 +1,7 @@
 const Item = require("../models/clothingItem");
 const { BadRequestError, SUCCESS } = require("../utils/errors/BadRequestError");
-const ForbiddenError = require("../utils/errors/ForbiddenError");
+const { ForbiddenError } = require("../utils/errors/ForbiddenError");
+const { NotFoundError } = require("../utils/errors/NotFoundError");
 
 const getItems = (req, res, next) => {
   Item.find({})
@@ -29,13 +30,18 @@ const deleteItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
-        next(new ForbiddenError(err.message));
+        return next(new ForbiddenError(err.message));
       }
       item
         .deleteOne()
         .then(() => res.send({ message: "Successfully deleted" }));
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === "DocumentNotFoundError") {
+        next(new NotFoundError(err.message));
+      }
+      next();
+    });
 };
 
 const likeItems = (req, res, next) => {
@@ -46,7 +52,12 @@ const likeItems = (req, res, next) => {
   )
     .orFail()
     .then((item) => res.status(SUCCESS).send(item))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === "DocumentNotFoundError") {
+        next(new NotFoundError(err.message));
+      }
+      next();
+    });
 };
 
 const deleteLikes = (req, res, next) => {
@@ -57,7 +68,12 @@ const deleteLikes = (req, res, next) => {
   )
     .orFail()
     .then((item) => res.status(SUCCESS).send(item))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === "DocumentNotFoundError") {
+        next(new NotFoundError(err.message));
+      }
+      next();
+    });
 };
 
 module.exports = { getItems, createItem, deleteItem, likeItems, deleteLikes };
